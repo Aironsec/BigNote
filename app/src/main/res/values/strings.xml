@@ -2,4 +2,6 @@
     <string name="app_name">BigNote</string>
     <string name="default_title_note">Заметка</string>
     <string name="default_body_note">Текст заметки</string>
+    <string name="title_hint">Заголовок</string>
+    <string name="body_hint">Техт заметки</string>
 </resources>
