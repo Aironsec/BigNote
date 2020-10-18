@@ -6,9 +6,9 @@ import java.util.*
 
 @Parcelize
 data class Note(
-    val id: String,
-    val title: String,
-    val note: String,
+    val id: String = "",
+    val title: String = "",
+    val note: String = "",
     val color: Color = Color.WHITE,
     val lastChanged: Date = Date()
 ) : Parcelable{
@@ -22,6 +22,15 @@ data class Note(
         if(id != other.id) return false
 
         return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + title.hashCode()
+        result = 31 * result + note.hashCode()
+        result = 31 * result + color.hashCode()
+        result = 31 * result + lastChanged.hashCode()
+        return result
     }
 }
 

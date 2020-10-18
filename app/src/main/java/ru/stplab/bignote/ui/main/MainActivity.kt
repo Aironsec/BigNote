@@ -1,33 +1,36 @@
 package ru.stplab.bignote.ui.main
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.stplab.bignote.R
+import ru.stplab.bignote.data.model.Note
+import ru.stplab.bignote.ui.base.BaseActivity
 import ru.stplab.bignote.ui.note.NoteActivity
 import ru.stplab.bignote.viewmodel.MainViewModel
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
+
+    override val viewModel: MainViewModel by lazy {
+        ViewModelProvider(this).get(MainViewModel::class.java)
+    }
+    override val layoutRes = R.layout.activity_main
+    lateinit var adapter: MainAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar_main)
-
-        val viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        val adapter = MainAdapter {
-            NoteActivity.startIntent(this, it)
+        adapter = MainAdapter {
+            NoteActivity.startIntent(this, it.id)
         }
 
         note_recycle.adapter = adapter
-
-        viewModel.viewState().observe(this, { viewStateLiveData ->
-            viewStateLiveData?.let { adapter.notes = it.notes }
-        })
-
         fab.setOnClickListener {
             NoteActivity.startIntent(this)
         }
+    }
+
+    override fun renderData(data: List<Note>?) {
+        data?.let { adapter.notes = it }
     }
 }
