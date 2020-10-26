@@ -9,15 +9,18 @@ import ru.stplab.bignote.viewmodel.base.BaseViewModel
 
 class MainViewModel: BaseViewModel<List<Note>?, MainViewState>()  {
 
-    private val notesObserver = Observer { result: NoteResult? ->
-        result ?: return@Observer
-        when (result) {
-            is NoteResult.Success<*> -> viewStateLiveData.value = MainViewState(result.data as? List<Note>)
-            is NoteResult.Error -> viewStateLiveData.value = MainViewState(error = result.error)
+    private val repositoryNotes = Repository.getNotes()
+    private val notesObserver = object : Observer<NoteResult?> {
+        override fun onChanged(result: NoteResult?) {
+            result ?: return
+            when (result) {
+                is NoteResult.Success<*> -> viewStateLiveData.value = MainViewState(result.data as? List<Note>)
+                is NoteResult.Error -> viewStateLiveData.value = MainViewState(error = result.error)
+            }
+            // TODO: 26.10.2020 при удалении слушателя заметки не обновляются
+//            repositoryNotes.removeObserver(this)
         }
     }
-
-    private val repositoryNotes = Repository.getNotes()
 
     init {
         repositoryNotes.observeForever(notesObserver)

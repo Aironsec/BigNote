@@ -6,4 +6,9 @@
     <string name="body_hint">Техт заметки</string>
     <string name="ok_bth_title">Ошибка</string>
     <string name="new_note_title">Новая заметка</string>
+    <string name="logout_menu_title">Выход</string>
+    <string name="logout_cancel">Нет</string>
+    <string name="logout_ok">Да</string>
+    <string name="logout_message">Вы уверены?</string>
+    <string name="logout_title">Выход</string>
 </resources>

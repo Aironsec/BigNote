@@ -11,6 +11,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.android.synthetic.main.activity_note.*
 import ru.stplab.bignote.R
+import ru.stplab.bignote.common.getColorInt
 import ru.stplab.bignote.data.model.Color
 import ru.stplab.bignote.data.model.Note
 import ru.stplab.bignote.ui.base.BaseActivity
@@ -69,7 +70,6 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
         et_title.addTextChangedListener(textChangeListener)
         et_body.addTextChangedListener(textChangeListener)
 
-//        initView()
     }
 
     private fun initView() {
@@ -77,16 +77,7 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
             et_title.setText(it.title)
             et_body.setText(it.note)
 
-            val color = when (it.color) {
-                Color.WHITE -> R.color.white
-                Color.YELLOW -> R.color.yellow
-                Color.GREEN -> R.color.green
-                Color.BLUE -> R.color.blue
-                Color.RED -> R.color.red
-                Color.VIOLET -> R.color.violet
-            }
-
-            toolbar_note.setBackgroundColor(ResourcesCompat.getColor(resources, color, null))
+            toolbar_note.setBackgroundColor(it.color.getColorInt(this))
         }
 
 
