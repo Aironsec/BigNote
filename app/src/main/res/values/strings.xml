@@ -11,4 +11,6 @@
     <string name="logout_ok">Да</string>
     <string name="logout_message">Вы уверены?</string>
     <string name="logout_title">Выход</string>
+    <string name="color_menu_title">Цвет</string>
+    <string name="delete_menu_title">Удалить</string>
 </resources>

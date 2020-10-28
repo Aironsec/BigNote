@@ -2,7 +2,7 @@ package ru.stplab.bignote.ui.splash
 
 import android.content.Context
 import android.content.Intent
-import androidx.lifecycle.ViewModelProvider
+import org.koin.android.viewmodel.ext.android.viewModel
 import ru.stplab.bignote.ui.base.BaseActivity
 import ru.stplab.bignote.ui.main.MainActivity
 import ru.stplab.bignote.viewmodel.SplashViewModel
@@ -15,7 +15,7 @@ class SplashActivity : BaseActivity<Boolean?, SplashViewState>() {
         }
     }
 
-    override val viewModel by lazy { ViewModelProvider(this).get(SplashViewModel::class.java) }
+    override val viewModel: SplashViewModel by viewModel()
     override val layoutRes = null
 
     override fun onResume() {

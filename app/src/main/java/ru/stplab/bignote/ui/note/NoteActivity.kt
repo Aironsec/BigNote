@@ -5,22 +5,21 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Menu
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.res.ResourcesCompat
-import androidx.lifecycle.ViewModelProvider
+import androidx.appcompat.app.AlertDialog
 import kotlinx.android.synthetic.main.activity_note.*
+import org.koin.android.viewmodel.ext.android.viewModel
 import ru.stplab.bignote.R
 import ru.stplab.bignote.common.getColorInt
 import ru.stplab.bignote.data.model.Color
 import ru.stplab.bignote.data.model.Note
 import ru.stplab.bignote.ui.base.BaseActivity
-import ru.stplab.bignote.ui.base.BaseViewState
 import ru.stplab.bignote.viewmodel.NoteViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-class NoteActivity : BaseActivity<Note?, NoteViewState>() {
+class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
 
     companion object {
         private const val EXTRA_NOTE = "extraNote"
@@ -33,14 +32,15 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
             }
     }
 
-    override val viewModel: NoteViewModel by lazy {
-        ViewModelProvider(this).get(NoteViewModel::class.java)
-    }
+    override val viewModel: NoteViewModel by viewModel()
     override val layoutRes = R.layout.activity_note
     private var note: Note? = null
+    var color = Color.WHITE
 
-    override fun renderData(data: Note?) {
-        this.note = data
+    override fun renderData(data: NoteViewState.Data) {
+        if (data.isDelete) finish()
+
+        this.note = data.note
         supportActionBar?.title = note?.lastChanged?.let {
             SimpleDateFormat(DATE_TIME_FORMAT, Locale.getDefault()).format(it)
         } ?: getString(R.string.new_note_title)
@@ -75,12 +75,15 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
     private fun initView() {
         note?.let {
             et_title.setText(it.title)
-            et_body.setText(it.note)
+            et_body.setText(it.text)
 
             toolbar_note.setBackgroundColor(it.color.getColorInt(this))
         }
-
-
+        colorPicker.onColorClickListener = {
+            toolbar_note.setBackgroundColor(it.getColorInt(this))
+            color = it
+            saveNote()
+        }
     }
 
     private fun saveNote() {
@@ -88,18 +91,39 @@ class NoteActivity : BaseActivity<Note?, NoteViewState>() {
 
         note = note?.copy(
             title = et_title.text.toString(),
-            note = et_body.text.toString(),
-            lastChanged = Date()
-        ) ?: Note(UUID.randomUUID().toString(), et_title.text.toString(), et_body.text.toString())
+            text = et_body.text.toString(),
+            lastChanged = Date(),
+            color = color
+        ) ?: Note(UUID.randomUUID().toString(), et_title.text.toString(), et_body.text.toString(), color = color)
 
         note?.let { viewModel.save(it) }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean = when(item.itemId){
-        android.R.id.home -> {
-            onBackPressed()
-            true
-        }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        return menuInflater.inflate(R.menu.note_menu, menu).let { true }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        android.R.id.home -> onBackPressed().let { true }
+        R.id.palette -> togglePalette().let { true }
+        R.id.delete -> deleteNote().let { true }
         else -> super.onOptionsItemSelected(item)
+    }
+
+    private fun togglePalette() {
+        if (colorPicker.isOpen) {
+            colorPicker.close()
+        } else {
+            colorPicker.open()
+        }
+    }
+
+    private fun deleteNote() {
+        AlertDialog.Builder(this)
+            .setTitle("Удалить заметку")
+            .setMessage("Вы уверены?")
+            .setPositiveButton("Да") { _, _ -> viewModel.deleteNote() }
+            .setNegativeButton("Нет") { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 }

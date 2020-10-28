@@ -12,9 +12,7 @@ import ru.stplab.bignote.data.model.User
 private const val NOTES_COLLECTION = "notes"
 private const val USERS_COLLECTION = "users"
 
-class FireStoreProvider : DataProvider {
-
-    private val db by lazy { FirebaseFirestore.getInstance() }
+class FireStoreProvider(private val db: FirebaseFirestore, private val auth: FirebaseAuth) : DataProvider {
 
     private val notesReference
         get() = currentUser?.let {
@@ -22,10 +20,9 @@ class FireStoreProvider : DataProvider {
         } ?: throw NoAuthException()
 
     private val currentUser
-        get() = FirebaseAuth.getInstance().currentUser
+        get() = auth.currentUser
 
-    override fun subscribeToAllNotes(): LiveData<NoteResult> =
-        MutableLiveData<NoteResult>().apply {
+    override fun subscribeToAllNotes(): LiveData<NoteResult> = MutableLiveData<NoteResult>().apply {
             notesReference.addSnapshotListener { snapshot, error ->
                 value = error?.let {
                     NoteResult.Error(it)
@@ -36,8 +33,7 @@ class FireStoreProvider : DataProvider {
             }
         }
 
-    override fun getNoteById(id: String): LiveData<NoteResult> =
-        MutableLiveData<NoteResult>().apply {
+    override fun getNoteById(id: String): LiveData<NoteResult> = MutableLiveData<NoteResult>().apply {
             notesReference.document(id).get()
                 .addOnSuccessListener { snapshot ->
                     value = NoteResult.Success((snapshot.toObject(Note::class.java)) as Note)
@@ -47,8 +43,7 @@ class FireStoreProvider : DataProvider {
                 }
         }
 
-    override fun saveNote(note: Note): LiveData<NoteResult> =
-        MutableLiveData<NoteResult>().apply {
+    override fun saveNote(note: Note): LiveData<NoteResult> = MutableLiveData<NoteResult>().apply {
             notesReference.document(note.id)
                 .set(note).addOnSuccessListener {
                     value = NoteResult.Success(note)
@@ -58,7 +53,18 @@ class FireStoreProvider : DataProvider {
                 }
         }
 
+    override fun deleteNote(id: String) = MutableLiveData<NoteResult>().apply {
+        notesReference.document(id).delete()
+            .addOnSuccessListener {
+                value = NoteResult.Success(null)
+            }.addOnFailureListener {
+                value = NoteResult.Error(it)
+            }
+    }
+
     override fun getCurrentUser() = MutableLiveData<User?>().apply {
-        value = currentUser?.let { User(it.displayName ?: "", it.email ?: "") }
+        value = currentUser?.let {
+            User(it.displayName ?: "", it.email ?: "")
+        }
     }
 }

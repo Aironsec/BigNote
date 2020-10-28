@@ -5,7 +5,7 @@ import java.util.*
 data class Note(
     val id: String = "",
     val title: String = "",
-    val note: String = "",
+    val text: String = "",
     val color: Color = Color.WHITE,
     val lastChanged: Date = Date()
 ){

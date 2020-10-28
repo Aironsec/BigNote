@@ -8,19 +8,36 @@ import ru.stplab.bignote.data.model.NoteResult
 import ru.stplab.bignote.ui.note.NoteViewState
 import ru.stplab.bignote.viewmodel.base.BaseViewModel
 
-class NoteViewModel : BaseViewModel<Note?, NoteViewState>() {
+class NoteViewModel(val repository: Repository) : BaseViewModel<NoteViewState.Data, NoteViewState>() {
+
     init {
         viewStateLiveData.value = NoteViewState()
     }
 
     private var pendingNote: Note? = null
     private var noteLiveData: LiveData<NoteResult>? = null
+    private var deleteLiveData: LiveData<NoteResult>? = null
+
+    private val deleteObserver = object : Observer<NoteResult> {
+        override fun onChanged(result: NoteResult?) {
+            result ?: return
+            when (result) {
+                is NoteResult.Success<*> -> {
+                    viewStateLiveData.value = NoteViewState(NoteViewState.Data(isDelete = true))
+                    pendingNote = null
+                }
+                is NoteResult.Error -> viewStateLiveData.value = NoteViewState(error = result.error)
+            }
+            deleteLiveData?.removeObserver(this)
+        }
+
+    }
 
     private val noteObserver = object : Observer<NoteResult> {
         override fun onChanged(result: NoteResult?) {
             result ?: return
             when (result) {
-                is NoteResult.Success<*> -> viewStateLiveData.value = NoteViewState(result.data as? Note)
+                is NoteResult.Success<*> -> viewStateLiveData.value = NoteViewState(NoteViewState.Data(result.data as? Note))
                 is NoteResult.Error -> viewStateLiveData.value = NoteViewState(error = result.error)
             }
             noteLiveData?.removeObserver(this)
@@ -34,13 +51,20 @@ class NoteViewModel : BaseViewModel<Note?, NoteViewState>() {
 
     override fun onCleared() {
         pendingNote?.let {
-            Repository.saveNote(it)
+            repository.saveNote(it)
         }
         noteLiveData?.removeObserver(noteObserver)
     }
 
     fun loadNote(id: String) {
-        noteLiveData = Repository.getNoteById(id)
+        noteLiveData = repository.getNoteById(id)
         noteLiveData?.observeForever(noteObserver)
+    }
+
+    fun deleteNote() {
+        pendingNote?.let {
+            deleteLiveData = repository.deleteNote(it.id)
+            deleteLiveData?.observeForever(deleteObserver)
+        }
     }
 }

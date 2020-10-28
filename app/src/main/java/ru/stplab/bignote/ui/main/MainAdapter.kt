@@ -4,16 +4,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.cardview.widget.CardView
-import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.item_note.view.*
+import kotlinx.android.extensions.LayoutContainer
+import kotlinx.android.synthetic.main.item_note.*
 import ru.stplab.bignote.R
 import ru.stplab.bignote.common.getColorInt
-import ru.stplab.bignote.data.model.Color
-import ru.stplab.bignote.data.model.Color.*
 import ru.stplab.bignote.data.model.Note
 
-class MainAdapter(val onClickListener: ((Note) -> Unit)? = null) : RecyclerView.Adapter<MainAdapter.ViewHolder>() {
+class MainAdapter(val onClickListener: ((Note) -> Unit)? = null) :
+    RecyclerView.Adapter<MainAdapter.ViewHolder>() {
 
     var notes: List<Note> = listOf()
         set(value) {
@@ -21,15 +20,22 @@ class MainAdapter(val onClickListener: ((Note) -> Unit)? = null) : RecyclerView.
             notifyDataSetChanged()
         }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(note: Note) = with(itemView) {
-            title_note.text = note.title
-            body_note.text = note.note
+    inner class ViewHolder(override val containerView: View) :
+        RecyclerView.ViewHolder(containerView), LayoutContainer {
+        fun bind(note: Note) {
+            with(note) {
+                title_note.text = title
+                body_note.text = text
 
-            (itemView as CardView).setCardBackgroundColor(note.color.getColorInt(context))
+                (containerView as CardView).setCardBackgroundColor(
+                    color.getColorInt(
+                        containerView.context
+                    )
+                )
 
-            itemView.setOnClickListener {
-                onClickListener?.invoke(note)
+                containerView.setOnClickListener {
+                    onClickListener?.invoke(this)
+                }
             }
         }
     }
