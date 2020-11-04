@@ -1,5 +1,6 @@
 package ru.stplab.bignote.viewmodel
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import ru.stplab.bignote.data.Repository
@@ -8,7 +9,7 @@ import ru.stplab.bignote.data.model.NoteResult
 import ru.stplab.bignote.ui.note.NoteViewState
 import ru.stplab.bignote.viewmodel.base.BaseViewModel
 
-class NoteViewModel(val repository: Repository) : BaseViewModel<NoteViewState.Data, NoteViewState>() {
+class NoteViewModel(private val repository: Repository) : BaseViewModel<NoteViewState.Data, NoteViewState>() {
 
     init {
         viewStateLiveData.value = NoteViewState()
@@ -49,7 +50,8 @@ class NoteViewModel(val repository: Repository) : BaseViewModel<NoteViewState.Da
         pendingNote = note
     }
 
-    override fun onCleared() {
+    @VisibleForTesting
+    public override fun onCleared() {
         pendingNote?.let {
             repository.saveNote(it)
         }

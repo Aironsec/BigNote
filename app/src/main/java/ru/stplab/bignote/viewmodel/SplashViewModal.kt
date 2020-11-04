@@ -9,9 +9,7 @@ class SplashViewModel(private val repository: Repository) : BaseViewModel<Boolea
 
     fun requestUser() {
         repository.getCurrentUser().observeForever {
-            viewStateLiveData.value = it?.let { SplashViewState(true) } ?: let {
-                SplashViewState(error = NoAuthException())
-            }
+            viewStateLiveData.value = it?.let { SplashViewState(true) } ?: SplashViewState(error = NoAuthException())
         }
     }
 }
