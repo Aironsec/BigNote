@@ -2,31 +2,34 @@ package ru.stplab.bignote.viewmodel
 
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.Observer
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import ru.stplab.bignote.data.Repository
 import ru.stplab.bignote.data.model.Note
 import ru.stplab.bignote.data.model.NoteResult
 import ru.stplab.bignote.ui.main.MainViewState
 import ru.stplab.bignote.viewmodel.base.BaseViewModel
 
-class MainViewModel(repository: Repository) : BaseViewModel<List<Note>?, MainViewState>() {
-
-    private val notesObserver = Observer { result: NoteResult? ->
-        result ?: return@Observer
-        when (result) {
-            is NoteResult.Success<*> -> viewStateLiveData.value = MainViewState(result.data as? List<Note>)
-            is NoteResult.Error -> viewStateLiveData.value = MainViewState(error = result.error)
-        }
-    }
+@ExperimentalCoroutinesApi
+class MainViewModel(repository: Repository) : BaseViewModel<List<Note>?>() {
 
     private val repositoryNotes = repository.getNotes()
 
     init {
-        repositoryNotes.observeForever(notesObserver)
+        launch {
+            repositoryNotes.consumeEach { result ->
+                when (result) {
+                    is NoteResult.Success<*> -> setData(result.data as? List<Note>)
+                    is NoteResult.Error -> setError(result.error)
+                }
+            }
+        }
     }
 
     @VisibleForTesting
     public override fun onCleared() {
         super.onCleared()
-        repositoryNotes.removeObserver(notesObserver)
+        repositoryNotes.cancel()
     }
 }

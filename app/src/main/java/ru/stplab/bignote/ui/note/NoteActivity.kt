@@ -9,6 +9,9 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import kotlinx.android.synthetic.main.activity_note.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.android.viewmodel.ext.android.viewModel
 import ru.stplab.bignote.R
 import ru.stplab.bignote.common.getColorInt
@@ -19,7 +22,7 @@ import ru.stplab.bignote.viewmodel.NoteViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
+class NoteActivity : BaseActivity<NoteData>() {
 
     companion object {
         private const val EXTRA_NOTE = "extraNote"
@@ -37,7 +40,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
     private var note: Note? = null
     var color = Color.WHITE
 
-    override fun renderData(data: NoteViewState.Data) {
+    override fun renderData(data: NoteData) {
         if (data.isDelete) finish()
 
         this.note = data.note
@@ -54,6 +57,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         override fun afterTextChanged(s: Editable?) = saveNote()
     }
 
+    @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setSupportActionBar(toolbar_note)
@@ -70,6 +74,8 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         et_title.addTextChangedListener(textChangeListener)
         et_body.addTextChangedListener(textChangeListener)
 
+        initView()
+
     }
 
     private fun initView() {
@@ -78,6 +84,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
             et_body.setText(it.text)
 
             toolbar_note.setBackgroundColor(it.color.getColorInt(this))
+            this.color = it.color
         }
         colorPicker.onColorClickListener = {
             toolbar_note.setBackgroundColor(it.getColorInt(this))
@@ -103,6 +110,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         return menuInflater.inflate(R.menu.note_menu, menu).let { true }
     }
 
+    @ExperimentalCoroutinesApi
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         android.R.id.home -> onBackPressed().let { true }
         R.id.palette -> togglePalette().let { true }
@@ -118,6 +126,7 @@ class NoteActivity : BaseActivity<NoteViewState.Data, NoteViewState>() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun deleteNote() {
         AlertDialog.Builder(this)
             .setTitle("Удалить заметку")

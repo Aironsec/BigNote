@@ -18,7 +18,7 @@ import ru.stplab.bignote.ui.note.NoteActivity
 import ru.stplab.bignote.ui.splash.SplashActivity
 import ru.stplab.bignote.viewmodel.MainViewModel
 
-class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
+class MainActivity : BaseActivity<List<Note>?>() {
 
     companion object {
         fun start(context: Context) = Intent(context, MainActivity::class.java).apply {
@@ -28,7 +28,7 @@ class MainActivity : BaseActivity<List<Note>?, MainViewState>() {
 
     override val viewModel: MainViewModel by viewModel()
     override val layoutRes = R.layout.activity_main
-    lateinit var adapter: MainAdapter
+    private lateinit var adapter: MainAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
